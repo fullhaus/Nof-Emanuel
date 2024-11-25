@@ -1,0 +1,14 @@
+pipeline {
+    agent {label 'localhost'}
+    stages {
+        stage('Checkout code') {
+            sh 'echo "Checkout code"'
+        }
+        stage('Build docker image') {
+            sh 'echo "Checkout code"'
+        }
+        stage('Deploy to AKS') {
+            sh 'echo "Deploy to AKS"'
+        }
+    }
+}

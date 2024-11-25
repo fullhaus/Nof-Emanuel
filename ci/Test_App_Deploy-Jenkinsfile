@@ -2,13 +2,19 @@ pipeline {
     agent {label 'localhost'}
     stages {
         stage('Checkout code') {
-            sh 'echo "Checkout code"'
+            steps {
+                echo 'Checkout code'
+            }
         }
         stage('Build docker image') {
-            sh 'echo "Checkout code"'
+            steps {
+                echo 'Build docker image'
+            }
         }
         stage('Deploy to AKS') {
-            sh 'echo "Deploy to AKS"'
+            steps {
+                echo 'Deploy to AKS'
+            }
         }
     }
 }

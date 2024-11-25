@@ -22,7 +22,7 @@ pipeline {
     }
     post {
         always {
-            cleanWs() // Cleans up the workspace after the build
+            cleanWs()
         }
         success {
             echo 'Pipeline completed successfully!'

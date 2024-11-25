@@ -3,18 +3,33 @@ pipeline {
     stages {
         stage('Checkout code') {
             steps {
-                echo 'Checkout code'
+                echo 'Cloning the repository...'
+                git branch: 'main', url: 'https://github.com/fullhaus/Nof-Emanuel.git'
             }
         }
         stage('Build docker image') {
             steps {
-                echo 'Build docker image'
+                echo 'Building docker image...'
+                cd ./app && docker build -t test:latest .
+                docker images
             }
         }
         stage('Deploy to AKS') {
             steps {
                 echo 'Deploy to AKS'
             }
+        }
+    }
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs() // Cleans up the workspace after the build
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }

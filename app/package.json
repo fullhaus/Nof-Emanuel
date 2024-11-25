@@ -1,0 +1,14 @@
+{
+  "name": "nof-emanuel-app",
+  "version": "1.0.0",
+  "description": "NOF-EMANUEL APP",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": "https://github.com/fullhaus/Nof-Emanuel/app",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}

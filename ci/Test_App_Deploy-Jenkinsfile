@@ -10,8 +10,11 @@ pipeline {
         stage('Build docker image') {
             steps {
                 echo 'Building docker image...'
-                cd ./app && docker build -t test:latest .
-                docker images
+                sh '''
+                    cd ./app
+                    docker build -t test:latest .
+                    docker images
+                '''
             }
         }
         stage('Deploy to AKS') {

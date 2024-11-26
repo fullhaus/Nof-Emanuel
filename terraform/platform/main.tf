@@ -38,18 +38,24 @@ module "aks" {
   environment         = local.env
   project             = local.config["project"]
   node_resource_group = "${local.config["resource_group_name"]}-${local.env}-aks"
-  aks_version         = "1.30.3"
+  aks_version         = "1.31.1"
   node_count          = "1"
-  vm_size             = "Standard_D4s_v4"
+  vm_size             = "Standard_DS2_v2"
   os_disk_size_gb     = "128"
   vnet_subnet_id      = module.network.vnet_aks_subnet_ids["aks-subnet"]
   admin_username      = "${local.config["project"]}-admin"
   ad_group_member     = ["64a48119-e958-4d3c-ae0a-05de048b3775"]
 }
 
-# resource "azurerm_role_assignment" "registry" {
-#   principal_id                     = module.aks.kubelet_identity_principal_id
-#   role_definition_name             = "AcrPull"
-#   scope                            = module.container-registry.acr_id
-#   skip_service_principal_aad_check = true
+resource "azurerm_role_assignment" "registry" {
+  principal_id                     = module.aks.kubelet_identity_principal_id
+  role_definition_name             = "AcrPull"
+  scope                            = module.container-registry.acr_id
+  skip_service_principal_aad_check = true
+}
+
+# Assign Key Vault Secrets Provider to AKS
+# resource "azurerm_kubernetes_cluster_key_vault_secrets_provider" "aks_provider" {
+#   kubernetes_cluster_id = module.aks.id
+#   key_vault_id          = azurerm_key_vault.aks_kv.id
 # }

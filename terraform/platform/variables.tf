@@ -11,7 +11,7 @@ locals {
       #
       project = "nof-emanuel"
       #
-      location            = "West Europe"
+      location            = "France Central" #"West Europe"
       resource_group_name = "Vasyl-Candidate"
     }
   }

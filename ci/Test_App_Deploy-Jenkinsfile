@@ -76,11 +76,12 @@ pipeline {
                 '''
 
                 // Check service accessibility
-                //sh '''
-                //kubectl get service test-nof-emanuel-nof-emanuel-service -n default
-                //'''
+                sh '''
+                kubectl get service test-nof-emanuel-nof-emanuel-service -n default
+                '''
 
                 // Check with curl
+                // TODO
                 //sh '''
                 //curl -s http://<application-service-url>/health || exit 1
                 //'''

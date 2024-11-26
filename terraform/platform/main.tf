@@ -39,7 +39,7 @@ module "aks" {
   project             = local.config["project"]
   node_resource_group = "${local.config["resource_group_name"]}-${local.env}-aks"
   aks_version         = "1.31.1"
-  node_count          = "1"
+  node_count          = "2"
   vm_size             = "Standard_DS2_v2"
   os_disk_size_gb     = "128"
   vnet_subnet_id      = module.network.vnet_aks_subnet_ids["aks-subnet"]
@@ -53,9 +53,3 @@ resource "azurerm_role_assignment" "registry" {
   scope                            = module.container-registry.acr_id
   skip_service_principal_aad_check = true
 }
-
-# Assign Key Vault Secrets Provider to AKS
-# resource "azurerm_kubernetes_cluster_key_vault_secrets_provider" "aks_provider" {
-#   kubernetes_cluster_id = module.aks.id
-#   key_vault_id          = azurerm_key_vault.aks_kv.id
-# }

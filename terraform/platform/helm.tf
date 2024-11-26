@@ -8,46 +8,78 @@ provider "helm" {
   }
 }
 
-# Cert Manager Helm Chart
-resource "helm_release" "cert_manager" {
-  name       = "${local.env}-${local.config["project"]}-cert-manager"
-  namespace  = "${local.env}-${local.config["project"]}-cert-manager"
-  create_namespace = true
-  chart      = "cert-manager"
-  repository = "https://charts.jetstack.io"
-  version    = "1.10.0"
+# # NGINX Ingress Controller with Static IP
+# resource "azurerm_public_ip" "nginx_ingress" {
+#   name                = "${local.env}-${local.config["project"]}-ginx-ingress"
+#   resource_group_name = local.config["resource_group_name"]
+#   location            = local.config["location"]
+#   allocation_method   = "Static"
+# }
 
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-}
+# # Namespace for NGINX Ingress Controller
+# resource "kubernetes_namespace" "nginx_namespace" {
+#   metadata {
+#     name = "ingress-basic"
 
-# # External DNS Helm Chart
-# resource "helm_release" "external_dns" {
-#   name       = "${local.env}-${local.config["project"]}-external-dns"
-#   namespace  = "${local.env}-${local.config["project"]}-kube-system"
-#   chart      = "external-dns"
-#   repository = "https://kubernetes-charts.storage.googleapis.com/"
-#   version    = "1.10.0"
-
-#   set {
-#     name  = "azure.secretName"
-#     value = "external-dns-secret"
+#     labels = {
+#       "cert-manager.io/disable-validation" = "true"
+#     }
 #   }
 # }
 
 # # NGINX Ingress Controller
 # resource "helm_release" "nginx_ingress" {
-#   name       = "${local.env}-${local.config["project"]}-nginx-ingress"
-#   namespace  = "${local.env}-${local.config["project"]}-nginx-ingress"
+#   name       = "ingress-nginx"
+#   namespace  = "ingress-basic"
 #   chart      = "ingress-nginx"
 #   repository = "https://kubernetes.github.io/ingress-nginx"
-#   version    = "4.7.1"
+#   version    = "4.11.3"
+
+#   values = [
+#     <<EOT
+# controller:
+#   replicaCount: 2
+#   nodeSelector:
+#     kubernetes.io/os: linux
+#   service:
+#     externalTrafficPolicy: Local
+#     loadBalancerIP: "${azurerm_public_ip.nginx_ingress.ip_address}"
+
+# defaultBackend:
+#   nodeSelector:
+#     kubernetes.io/os: linux
+# EOT
+#   ]
+
+#   depends_on = [kubernetes_namespace.nginx_namespace]
+# }
+
+# Cert Manager Helm Chart
+# resource "helm_release" "cert_manager" {
+#   name       = "${local.env}-${local.config["project"]}-cert-manager"
+#   namespace  = "ingress-basic"
+#   create_namespace = true
+#   chart      = "cert-manager"
+#   repository = "https://charts.jetstack.io"
+#   version    = "1.10.0"
 
 #   set {
-#     name  = "controller.service.loadBalancerIP"
-#     value = azurerm_public_ip.nginx_ingress.ip_address
+#     name  = "installCRDs"
+#     value = "true"
+#   }
+# }
+
+# External DNS Helm Chart
+# resource "helm_release" "external_dns" {
+#   name       = "${local.env}-${local.config["project"]}-external-dns"
+#   namespace  = "kube-system"
+#   chart      = "external-dns"
+#   repository = "https://charts.bitnami.com/bitnami"
+#   version    = "6.32.0"
+
+#   set {
+#     name  = "azure.secretName"
+#     value = "external-dns-secret"
 #   }
 # }
 

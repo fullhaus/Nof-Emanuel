@@ -1,9 +1,10 @@
 pipeline {
     agent { label 'built-in' }
     environment {
-        ACR_NAME = 'nofemanueltest.azurecr.io'
+        KUBECONFIG = credentials('kube-config-credential-id')
+        ACR_NAME   = 'nofemanueltest.azurecr.io'
         IMAGE_NAME = 'app'
-        TAG = 'latest'
+        TAG        = 'latest'
     }
     stages {
         stage('Checkout code') {
@@ -42,7 +43,34 @@ pipeline {
         }
         stage('Deploy to AKS') {
             steps {
-                echo 'Deploy to AKS'
+                echo 'Deploying application to Kubernetes...'
+                //sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl get nodes'
+            }
+        }
+        stage('Verify Application') {
+            steps {
+                echo 'Verifying application deployment...'
+
+                // Check the deployment status
+                //sh '''
+                //kubectl rollout status deployment/test-nof-emanuel-app-nof-emanuel -n default
+                //'''
+
+                // Check if pods are running
+                sh '''
+                kubectl get pods -n default
+                '''
+
+                // Check service accessibility
+                //sh '''
+                //kubectl get service test-nof-emanuel-nof-emanuel-service -n default
+                //'''
+
+                // Check with curl
+                //sh '''
+                //curl -s http://<application-service-url>/health || exit 1
+                //'''
             }
         }
     }

@@ -37,7 +37,7 @@ resource "kubernetes_deployment" "nof_emanuel_app_deployment" {
           name  = "nof-emanuel-app"
           image = "nofemanueltest.azurecr.io/app:latest"
           port {
-            container_port = 80
+            container_port = 3000
           }
           resources {
             limits = {
@@ -58,7 +58,7 @@ resource "kubernetes_deployment" "nof_emanuel_app_deployment" {
 # Service for Application
 resource "kubernetes_service" "nof_emanuel_app_service" {
   metadata {
-    name      = "nof-emanuel-service"
+    name      = "${local.env}-${local.config["project"]}-nof-emanuel-service"
     namespace = "default"
     labels = {
       app = "nof-emanuel-app"
@@ -72,7 +72,7 @@ resource "kubernetes_service" "nof_emanuel_app_service" {
 
     port {
       port        = 80
-      target_port = 80
+      target_port = 3000
     }
 
     type = "NodePort"

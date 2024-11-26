@@ -51,21 +51,30 @@ resource "helm_release" "cert_manager" {
 #   }
 # }
 
-# # Redis Sentinel Installation
-# resource "helm_release" "redis_sentinel" {
-#   name       = "${local.env}-${local.config["project"]}-redis"
-#   namespace  = "${local.env}-${local.config["project"]}-redis"
-#   chart      = "redis"
-#   repository = "https://charts.bitnami.com/bitnami"
-#   version    = "17.3.11"
+# Namespace for redis
+resource "kubernetes_namespace" "redis_namespace" {
+  metadata {
+    name = "${local.env}-${local.config["project"]}-redis"
+  }
+}
 
-#   set {
-#     name  = "architecture"
-#     value = "replication"
-#   }
+# Redis Sentinel Installation
+resource "helm_release" "redis_sentinel" {
+  name       = "${local.env}-${local.config["project"]}-redis"
+  namespace  = "${local.env}-${local.config["project"]}-redis"
+  chart      = "redis"
+  repository = "https://charts.bitnami.com/bitnami"
+  version    = "17.3.11"
 
-#   set {
-#     name  = "replica.replicaCount"
-#     value = "2"
-#   }
-# }
+  set {
+    name  = "architecture"
+    value = "replication"
+  }
+
+  set {
+    name  = "replica.replicaCount"
+    value = "2"
+  }
+
+  depends_on = [kubernetes_namespace.redis_namespace]
+}

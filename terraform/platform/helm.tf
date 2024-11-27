@@ -56,19 +56,20 @@ EOT
 }
 
 # Cert Manager Helm Chart
-# resource "helm_release" "cert_manager" {
-#   name       = "${local.env}-${local.config["project"]}-cert-manager"
-#   namespace  = "ingress-basic"
-#   create_namespace = true
-#   chart      = "cert-manager"
-#   repository = "https://charts.jetstack.io"
-#   version    = "1.10.0"
+resource "helm_release" "cert_manager" {
+  name             = "${local.env}-${local.config["project"]}-cert-manager"
+  namespace        = "ingress-basic"
+  create_namespace = true
+  #
+  chart      = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  version    = "1.10.0"
 
-#   set {
-#     name  = "installCRDs"
-#     value = "true"
-#   }
-# }
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
+}
 
 # External DNS Helm Chart
 # resource "helm_release" "external_dns" {

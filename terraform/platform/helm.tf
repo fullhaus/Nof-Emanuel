@@ -71,18 +71,100 @@ resource "helm_release" "cert_manager" {
   }
 }
 
+resource "azurerm_dns_zone" "dns_zone" {
+  name                = "nof-emanuel.io"
+  resource_group_name = local.config["resource_group_name"]
+}
+
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "${local.env}-${local.config["project"]}-identity"
+  resource_group_name = local.config["resource_group_name"]
+  location            = local.config["location"]
+}
+
+# Define the Azure Active Directory Application
+resource "azuread_application" "external_dns_app" {
+  display_name = "external-dns-sp"
+}
+
+data "azuread_client_config" "current" {}
+
+# Create a Service Principal for the Application
+resource "azuread_service_principal" "external_dns_sp" {
+  client_id = azuread_application.external_dns_app.client_id
+}
+
+# Create a Service Principal Password (Client Secret)
+# resource "azuread_service_principal_password" "external_dns_sp_password" {
+#   service_principal_id = azuread_service_principal.external_dns_sp.id
+#   end_date             = "2099-12-31T23:59:59Z"
+# }
+
+# Generate a Random Password for the Service Principal
+# resource "random_password" "sp_password" {
+#   length           = 32
+#   special          = true
+# }
+
+# Assign the Contributor Role to the Service Principal for the Resource Group
+# resource "azurerm_role_assignment" "external_dns_sp_role" {
+#   principal_id         = azuread_service_principal.external_dns_sp.id
+#   role_definition_name = "DNS Zone Contributor"
+#   scope                = azurerm_dns_zone.dns_zone.id
+# }
+
+resource "kubernetes_secret" "external_dns" {
+  metadata {
+    name      = "external-dns"
+    namespace = "kube-system"
+  }
+
+  data = {
+    "azure.json" = jsonencode({
+      clientID        = "b8a4491a-373f-4394-a95f-57b63259c9fd"
+      clientSecret    = "A9v8Q~fXljgNWUCchhItCPyNmLTTiFau8PwzRb74"
+      tenantID        = "bd4f0481-b137-40f1-9e64-20cfd55fbf49"
+      subscriptionID  = data.azurerm_client_config.current.subscription_id
+      resourceGroup   = local.config["resource_group_name"]
+    })
+  }
+}
+
+#{
+#  "client_id": "b8a4491a-373f-4394-a95f-57b63259c9fd",
+#  "client_secret": "A9v8Q~fXljgNWUCchhItCPyNmLTTiFau8PwzRb74",
+#  "tenant_id": "bd4f0481-b137-40f1-9e64-20cfd55fbf49"
+#}
+
 # External DNS Helm Chart
 # resource "helm_release" "external_dns" {
 #   name       = "external-dns"
 #   namespace  = "kube-system"
+#   repository = "oci://registry-1.docker.io/bitnamicharts"
 #   chart      = "external-dns"
-#   repository = "https://kubernetes-charts.storage.googleapis.com/"
-#   version    = "1.10.0"
+#   version    = "8.6.0"
+
+#   set {
+#     name  = "provider"
+#     value = "azure"
+#   }
+
+#   set {
+#     name  = "azure.useManagedIdentity"
+#     value = "true"
+#   }
+
+#   set {
+#     name  = "rbac.create"
+#     value = "true"
+#   }
 
 #   set {
 #     name  = "azure.secretName"
-#     value = "external-dns-secret"
+#     value = "external-dns"
 #   }
+
+#   depends_on = [helm_release.cert_manager]
 # }
 
 # Namespace for redis

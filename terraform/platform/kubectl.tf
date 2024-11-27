@@ -79,6 +79,82 @@ resource "kubernetes_service" "nof_emanuel_app_service" {
   }
 }
 
+# ClusterIssuer
+resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
+  manifest = {
+    "apiVersion" = "cert-manager.io/v1"
+    "kind"       = "ClusterIssuer"
+    "metadata" = {
+      "name" = "letsencrypt-prod"
+    }
+    "spec" = {
+      "acme" = {
+        "server" = "https://acme-v02.api.letsencrypt.org/directory"
+        "email"  = "Vasyl@2bcloudsandbox.onmicrosoft.com"
+        "privateKeySecretRef" = {
+          "name" = "letsencrypt-prod"
+        }
+        "solvers" = [
+          {
+            "dns01" = {
+              "azureDNS" = {
+                "clientID"     = azurerm_user_assigned_identity.identity.client_id
+                "clientSecretSecretRef" = {
+                  "name" = "azure-dns-credentials"
+                  "key"  = "client-secret"
+                }
+                "tenantID" = "bd4f0481-b137-40f1-9e64-20cfd55fbf49"
+                "subscriptionID" = "2fa0e512-f70e-430f-9186-1b06543a848e"
+                "resourceGroupName" = local.config["resource_group_name"]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+# Ingress
+resource "kubernetes_ingress_v1" "example" {
+  metadata {
+    name      = "${local.env}-${local.config["project"]}-nof-emanuel-ingress"
+    namespace = "default"
+    annotations = {
+      "kubernetes.io/ingress.class"                 = "nginx"
+      "cert-manager.io/cluster-issuer"              = "letsencrypt-prod"
+      "external-dns.alpha.kubernetes.io/hostname"   = "web.nof-emanuel.io"
+    }
+  }
+
+  spec {
+    rule {
+      host = "web.nof-emanuel.io"
+      http {
+        path {
+          path     = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "${local.env}-${local.config["project"]}-nof-emanuel-service"
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+
+    tls {
+      hosts      = ["web.nof-emanuel.io"]
+      secret_name = "web-${local.env}-${local.config["project"]}-app-tls"
+    }
+  }
+}
+
+
 # HPA for Application
 resource "kubernetes_horizontal_pod_autoscaler_v2" "app_hpa" {
   metadata {

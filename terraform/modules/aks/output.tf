@@ -24,3 +24,11 @@ output "aks_ec2_private_key" {
   value     = tls_private_key.ssh.private_key_pem
   sensitive = true
 }
+
+output "key_vault" {
+  value     = azurerm_key_vault.key_vault
+}
+
+output "key_vault_secret_kubeconfig" {
+  value     = azurerm_key_vault_secret.kubeconfig
+}

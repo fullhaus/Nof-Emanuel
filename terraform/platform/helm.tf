@@ -73,11 +73,11 @@ resource "helm_release" "cert_manager" {
 
 # External DNS Helm Chart
 # resource "helm_release" "external_dns" {
-#   name       = "${local.env}-${local.config["project"]}-external-dns"
+#   name       = "external-dns"
 #   namespace  = "kube-system"
 #   chart      = "external-dns"
-#   repository = "https://charts.bitnami.com/bitnami"
-#   version    = "6.32.0"
+#   repository = "https://kubernetes-charts.storage.googleapis.com/"
+#   version    = "1.10.0"
 
 #   set {
 #     name  = "azure.secretName"

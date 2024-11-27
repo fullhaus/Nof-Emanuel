@@ -8,51 +8,52 @@ provider "helm" {
   }
 }
 
-# # NGINX Ingress Controller with Static IP
-# resource "azurerm_public_ip" "nginx_ingress" {
-#   name                = "${local.env}-${local.config["project"]}-ginx-ingress"
-#   resource_group_name = local.config["resource_group_name"]
-#   location            = local.config["location"]
-#   allocation_method   = "Static"
-# }
+# NGINX Ingress Controller with Static IP
+resource "azurerm_public_ip" "nginx_ingress" {
+  name                = "${local.env}-${local.config["project"]}-nginx-ingress"
+  resource_group_name = "${local.config["resource_group_name"]}-${local.env}-aks"
+  location            = local.config["location"]
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
 
-# # Namespace for NGINX Ingress Controller
-# resource "kubernetes_namespace" "nginx_namespace" {
-#   metadata {
-#     name = "ingress-basic"
+# Namespace for NGINX Ingress Controller
+resource "kubernetes_namespace" "nginx_namespace" {
+  metadata {
+    name = "ingress-basic"
 
-#     labels = {
-#       "cert-manager.io/disable-validation" = "true"
-#     }
-#   }
-# }
+    labels = {
+      "cert-manager.io/disable-validation" = "true"
+    }
+  }
+}
 
-# # NGINX Ingress Controller
-# resource "helm_release" "nginx_ingress" {
-#   name       = "ingress-nginx"
-#   namespace  = "ingress-basic"
-#   chart      = "ingress-nginx"
-#   repository = "https://kubernetes.github.io/ingress-nginx"
-#   version    = "4.11.3"
+# NGINX Ingress Controller
+resource "helm_release" "nginx_ingress" {
+  name       = "ingress-nginx"
+  namespace  = "ingress-basic"
+  chart      = "ingress-nginx"
+  repository = "https://kubernetes.github.io/ingress-nginx"
+  version    = "4.11.3"
 
-#   values = [
-#     <<EOT
-# controller:
-#   replicaCount: 2
-#   nodeSelector:
-#     kubernetes.io/os: linux
-#   service:
-#     externalTrafficPolicy: Local
-#     loadBalancerIP: "${azurerm_public_ip.nginx_ingress.ip_address}"
+  values = [
+    <<EOT
+controller:
+  replicaCount: 2
+  nodeSelector:
+    kubernetes.io/os: linux
+  service:
+    externalTrafficPolicy: Local
+    loadBalancerIP: "${azurerm_public_ip.nginx_ingress.ip_address}"
 
-# defaultBackend:
-#   nodeSelector:
-#     kubernetes.io/os: linux
-# EOT
-#   ]
+defaultBackend:
+  nodeSelector:
+    kubernetes.io/os: linux
+EOT
+  ]
 
-#   depends_on = [kubernetes_namespace.nginx_namespace]
-# }
+  depends_on = [kubernetes_namespace.nginx_namespace]
+}
 
 # Cert Manager Helm Chart
 # resource "helm_release" "cert_manager" {

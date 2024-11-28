@@ -7,7 +7,7 @@ $ brew install httpd
 ```
 
 ```shell
-ab -n 1000 -c 100 https://web.nof-emanuel.dev/
+ab -n 1000 -c 100 https://web.nof-emanuel.local/
 ```
 
 ## Install hey tool for MAC and run
@@ -17,5 +17,5 @@ $ brew install hey
 ```
 
 ```shell
-hey -z 30s -c 100 https://web.nof-emanuel.dev/
+hey -z 30s -c 100 https://web.nof-emanuel.local/
 ```

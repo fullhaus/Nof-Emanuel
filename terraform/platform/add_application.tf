@@ -20,7 +20,7 @@ resource "azuread_application_password" "external_dns_secret" {
 # az role assignment create \
 #  --assignee "b8a4491a-373f-4394-a95f-57b63259c9fd" \
 #  --role "DNS Zone Contributor" \
-#  --scope "/subscriptions/2fa0e512-f70e-430f-9186-1b06543a848e/resourceGroups/Vasyl-Candidate/providers/Microsoft.Network/dnsZones/nof-emanuel.dev"
+#  --scope "/subscriptions/2fa0e512-f70e-430f-9186-1b06543a848e/resourceGroups/Vasyl-Candidate/providers/Microsoft.Network/dnsZones/nof-emanuel.local"
 # resource "azurerm_role_assignment" "dns_contributor_test" {
 #   scope                = azurerm_dns_zone.dns_zone.id
 #   role_definition_name = "DNS Zone Contributor"

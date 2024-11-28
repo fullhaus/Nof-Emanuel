@@ -72,7 +72,7 @@ resource "helm_release" "cert_manager" {
 }
 
 resource "azurerm_dns_zone" "dns_zone" {
-  name                = "nof-emanuel.dev"
+  name                = "nof-emanuel.local"
   resource_group_name = local.config["resource_group_name"]
 }
 
@@ -144,6 +144,11 @@ resource "helm_release" "external_dns" {
   set {
     name  = "azure.secretName"
     value = "external-dns"
+  }
+
+  set {
+    name  = "domainFilter"
+    value = "nof-emanuel.local"
   }
 
   depends_on = [

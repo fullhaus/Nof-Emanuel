@@ -88,7 +88,7 @@ resource "kubernetes_secret" "azure_dns_credentials" {
 
   data = {
     # Encode your client secret in base64 for Kubernetes compatibility
-    "client-secret" = base64encode(azuread_application_password.external_dns_secret.value)
+    "client-secret" = azuread_application_password.external_dns_secret.value
   }
 }
 
@@ -144,13 +144,13 @@ resource "kubernetes_ingress_v1" "example" {
       "nginx.ingress.kubernetes.io/ssl-redirect"    = "false"
       "cert-manager.io/cluster-issuer"              = "letsencrypt-${local.env}"
       "nginx.ingress.kubernetes.io/rewrite-target"  = "/"
-      "external-dns.alpha.kubernetes.io/hostname"   = "web.nof-emanuel.dev"
+      "external-dns.alpha.kubernetes.io/hostname"   = "web.nof-emanuel.local"
     }
   }
 
   spec {
     rule {
-      host = "web.nof-emanuel.dev"
+      host = "web.nof-emanuel.local"
       http {
         path {
           path     = "/"
@@ -169,7 +169,7 @@ resource "kubernetes_ingress_v1" "example" {
     }
 
     tls {
-      hosts      = ["web.nof-emanuel.dev"]
+      hosts      = ["web.nof-emanuel.local"]
       secret_name = "web-${local.env}-${local.config["project"]}-app-tls"
     }
   }

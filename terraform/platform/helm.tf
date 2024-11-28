@@ -72,7 +72,7 @@ resource "helm_release" "cert_manager" {
 }
 
 resource "azurerm_dns_zone" "dns_zone" {
-  name                = "nof-emanuel.io"
+  name                = "nof-emanuel.dev"
   resource_group_name = local.config["resource_group_name"]
 }
 
@@ -107,10 +107,10 @@ resource "kubernetes_secret" "external_dns" {
   data = {
     "azure.json" = jsonencode({
       "cloud": "AzurePublicCloud",
-      "tenantId": "bd4f0481-b137-40f1-9e64-20cfd55fbf49",
-      "aadClientId": "b8a4491a-373f-4394-a95f-57b63259c9fd",
-      "aadClientSecret": "A9v8Q~fXljgNWUCchhItCPyNmLTTiFau8PwzRb74",
-      "subscriptionId": "2fa0e512-f70e-430f-9186-1b06543a848e",
+      "tenantId": data.azurerm_client_config.current.tenant_id,
+      "aadClientId": data.azuread_application.test.client_id,
+      "aadClientSecret": azuread_application_password.external_dns_secret.value,
+      "subscriptionId": data.azurerm_client_config.current.subscription_id,
       "resourceGroup": local.config["resource_group_name"],
       "userAssignedIdentityClientID": azurerm_user_assigned_identity.identity.client_id,
       "useManagedIdentityExtension": true

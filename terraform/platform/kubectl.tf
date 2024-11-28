@@ -79,32 +79,45 @@ resource "kubernetes_service" "nof_emanuel_app_service" {
   }
 }
 
+# Secret azure-dns-credentials
+resource "kubernetes_secret" "azure_dns_credentials" {
+  metadata {
+    name      = "azure-dns-credentials"
+    namespace = "ingress-basic"
+  }
+
+  data = {
+    # Encode your client secret in base64 for Kubernetes compatibility
+    "client-secret" = base64encode(azuread_application_password.external_dns_secret.value)
+  }
+}
+
 # ClusterIssuer
 resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
   manifest = {
     "apiVersion" = "cert-manager.io/v1"
     "kind"       = "ClusterIssuer"
     "metadata" = {
-      "name" = "letsencrypt-prod"
+      "name" = "letsencrypt-${local.env}"
     }
     "spec" = {
       "acme" = {
         "server" = "https://acme-v02.api.letsencrypt.org/directory"
         "email"  = "Vasyl@2bcloudsandbox.onmicrosoft.com"
         "privateKeySecretRef" = {
-          "name" = "letsencrypt-prod"
+          "name" = "letsencrypt-${local.env}"
         }
         "solvers" = [
           {
             "dns01" = {
               "azureDNS" = {
-                "clientID"     = azurerm_user_assigned_identity.identity.client_id
+                "clientID"     = data.azuread_application.test.client_id
                 "clientSecretSecretRef" = {
                   "name" = "azure-dns-credentials"
                   "key"  = "client-secret"
                 }
-                "tenantID" = "bd4f0481-b137-40f1-9e64-20cfd55fbf49"
-                "subscriptionID" = "2fa0e512-f70e-430f-9186-1b06543a848e"
+                "tenantID" = data.azurerm_client_config.current.tenant_id
+                "subscriptionID" = data.azurerm_client_config.current.subscription_id
                 "resourceGroupName" = local.config["resource_group_name"]
               }
             }
@@ -113,6 +126,12 @@ resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
       }
     }
   }
+
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.nginx_ingress,
+    helm_release.external_dns
+  ]
 }
 
 # Ingress
@@ -122,14 +141,16 @@ resource "kubernetes_ingress_v1" "example" {
     namespace = "default"
     annotations = {
       "kubernetes.io/ingress.class"                 = "nginx"
-      "cert-manager.io/cluster-issuer"              = "letsencrypt-prod"
-      "external-dns.alpha.kubernetes.io/hostname"   = "web.nof-emanuel.io"
+      "nginx.ingress.kubernetes.io/ssl-redirect"    = "false"
+      "cert-manager.io/cluster-issuer"              = "letsencrypt-${local.env}"
+      "nginx.ingress.kubernetes.io/rewrite-target"  = "/"
+      "external-dns.alpha.kubernetes.io/hostname"   = "web.nof-emanuel.dev"
     }
   }
 
   spec {
     rule {
-      host = "web.nof-emanuel.io"
+      host = "web.nof-emanuel.dev"
       http {
         path {
           path     = "/"
@@ -148,12 +169,17 @@ resource "kubernetes_ingress_v1" "example" {
     }
 
     tls {
-      hosts      = ["web.nof-emanuel.io"]
+      hosts      = ["web.nof-emanuel.dev"]
       secret_name = "web-${local.env}-${local.config["project"]}-app-tls"
     }
   }
-}
 
+  depends_on = [
+    helm_release.cert_manager,
+    helm_release.nginx_ingress,
+    helm_release.external_dns
+  ]
+}
 
 # HPA for Application
 resource "kubernetes_horizontal_pod_autoscaler_v2" "app_hpa" {
